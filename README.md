@@ -1,66 +1,22 @@
-## Foundry
+# ChainDraw-FairTicket
+## 项目介绍
+ChainDraw 是一个去中心化的演唱会门票抽选系统，旨在提供一个公平、透明的门票分配平台。我们利用区块链技术和Chainlink的VRF（可验证随机函数）来确保抽选过程的公正性和不可预测性。此项目不仅增加了演唱会门票销售的透明度，还有效防止了黄牛和重复注册问题。
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## 主要特性
+- **去中心化**：完全在区块链上运行，确保所有交易和抽选过程的透明性。
+- **公平性抽选**：利用Chainlink VRF生成随机数，确保每次抽选的公正性。
+- **抗女巫攻击**：通过KYC验证和抵押系统，有效预防重复注册和女巫攻击。
+- **NFT门票**：中奖者将收到特定的NFT，作为门票使用，并包含唯一的身份验证信息。
+- **门票抵押**：：要求用户在报名时缴纳一定数额的押金或抵押品（如ETH或其他代币）。抵押品将在未中奖时返还，这可以大幅提高恶意注册的成本。
 
-Foundry consists of:
+## 系统功能
+用户界面：设计一个用户友好的前端界面，让参与者可以轻松报名、查看抽选结果和管理他们的票务。
+报名系统：用户通过链接他们的钱包进行报名，提交必要的信息如联系方式和支付门票的意向金（如果需要）。
+抽选过程：在报名结束后，智能合约利用Chainlink VRF产生随机数，根据这个随机数决定中奖者。
+票务发放：中奖者将收到NFT（非同质化代币）作为门票，NFT内嵌了用户的身份验证信息和票据详情。
+二手市场：提供一个平台允许用户之间安全转让票务NFT，每次交易都通过智能合约来验证和记录
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+## 项目技术
+  前端
+  后端链上交互
+  智能合约
