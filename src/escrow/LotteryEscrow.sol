@@ -9,8 +9,25 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * @notice
  */
 contract LotteryEscrow is Ownable {
+    /**
+     * 事件——购票者已缴纳抵押品
+     * @param buyer 购票者地址
+     * @param money 缴纳金额
+     */
     event LotteryEscrow__Deposited(address buyer, uint256 money);
+    /**
+     * 事件——购票者已被退回抵押品
+     * @param buyer 购票者地址
+     * @param money 金额
+     */
     event LotteryEscrow__Refunded(address buyer, uint256 money);
+    /**
+     * 事件——抵押品已转给演唱会组织者
+     * @param concertId 演唱会id
+     * @param ticketType 门票种类
+     * @param organizer 组织者钱包地址
+     * @param money 金额
+     */
     event LotteryEscrow__ClaimedFunds(
         uint256 indexed concertId, uint256 indexed ticketType, address organizer, uint256 money
     );
@@ -53,7 +70,7 @@ contract LotteryEscrow is Ownable {
     }
 
     /**
-     * 当前合约的钱打给活动组织者
+     * 当前抵押品合约的钱打给活动组织者
      */
     function claimFunds() public onlyOwner {
         uint256 amount = address(this).balance;
