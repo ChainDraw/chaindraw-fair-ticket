@@ -4,23 +4,19 @@ pragma solidity 0.8.20;
 import {LotteryEscrow} from "./LotteryEscrow.sol";
 
 contract LotteryEscrowFactory {
-    /**
-     * 演唱会与抵押品托管合约的映射
-     * @param concertId 演唱会id
-     * @param escrowAddress 抵押品托管合约的地址
-     */
-    event EscrowCreated(uint256 indexed concertId, address escrowAddress);
+   
+    event EscrowCreated(uint256 indexed concertId,uint256 indexed  ticketType,address escrowAddress,uint256 ticketPrice);
 
     mapping(uint256 => address) public escrows;
 
-    function createEscrow(address organizer, uint256 concertId) public returns (address escrowAddress) {
-        LotteryEscrow escrow = new LotteryEscrow(organizer, concertId);
-        escrows[concertId] = address(escrow);
+    function createEscrow(address _organizer,uint256 _concertId,uint256 _ticketType,uint256 _ticketPrice  ) public returns (address escrowAddress) {
+        LotteryEscrow escrow = new LotteryEscrow(_organizer, _concertId,_ticketType,_ticketPrice);
+        escrows[_ticketType] = address(escrow);
         escrowAddress = address(escrow);
-        emit EscrowCreated(concertId, escrowAddress);
+        emit EscrowCreated(_concertId,_ticketType, escrowAddress,_ticketPrice);
     }
 
-    function getEscrowAddress(uint256 concertId) public view returns (address) {
-        return escrows[concertId];
+     function getEscrowAddressByTicketType(uint256 ticketType) public view returns (address) {
+        return escrows[ticketType];
     }
 }
