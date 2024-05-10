@@ -61,7 +61,7 @@ contract LotteryEscrow is Ownable {
      * 未中奖者退回抵押品
      * @param participant 未中奖者
      */
-    function refund(address participant) public onlyOwner {
+    function refund(address participant) public  {
         uint256 amount = deposits[participant];
         require(amount > 0, "No deposit to refund");
         deposits[participant] = 0;
