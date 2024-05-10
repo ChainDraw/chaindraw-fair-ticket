@@ -4,8 +4,10 @@ pragma solidity 0.8.20;
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ReentrancyGuard} from "openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 
-contract NFTExchange {
+contract NFTExchange is ReentrancyGuard{
     error NFTExchange__NoEnoughMoney();
     error NFTExchange__NoEnoughAllowance();
     error NFTExchange__TransferFailed();
@@ -14,16 +16,16 @@ contract NFTExchange {
 
     event NFTExchange__SuccessPriced(address nftAddress, uint256 tokenId, uint256 price);
     // 票nft的合约地址
-    TicketNFT private i_nft;
+    ConcertTicket private i_nft;
     IERC20 private immutable i_erc20;
     mapping(uint256 tokenId => uint256 sellPrice) private s_tokenPrices;
 
     constructor(address _nftAddress, address i_erc20Address) {
-        i_nft = TicketNFT(_nftAddress);
+        i_nft = ConcertTicket(_nftAddress);
         i_erc20 = IERC20(i_erc20Address);
     }
     // todo modifier 非重入
-    function buyTicket(uint256 tokenId) public returns (bool) {
+    function buyTicket(uint256 tokenId) public nonReentrant  {
         address buyer = msg.sender;
         // 1. 获取票的信息
         Ticket memory ticket = i_nft.getTicket(tokenId);
@@ -42,16 +44,16 @@ contract NFTExchange {
         }
         // 5. 修改票的拥有者
         i_nft.changeOwner(tokenId, buyer);
-        return success;
     }
 
-    function OrderTicket(uint256 tokenId, uint256 sellPrice)  {
+    function orderTicket(uint256 tokenId, uint256 sellPrice) public nonReentrant  {
         address seller = msg.sender;
         // 1. 获取票的信息
         Ticket memory ticket = i_nft.getTicket(tokenId);
         if ( ticket.owner != seller) {
             revert NFTExchange__NotTicketOwner();
         }
+        // 检查票是不是被使用了
         if (ticket.used) {
             revert NFTExchange__TicketUsed();
         }
