@@ -20,7 +20,7 @@ contract LotteryEscrowFactory {
     event EscrowCreated(uint256 indexed concertId,uint256 indexed  ticketType,address escrowAddress,uint256 ticketPrice);
 
 /**
- * @notice key票种类，value 抵押品合约地址
+ * @notice key票种类唯一键，value 抵押品合约地址
  */
     mapping(uint256 => address) public escrows;
 

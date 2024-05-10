@@ -52,7 +52,7 @@ contract LotteryEscrow is Ownable {
      * 报名时候缴纳抵押品
      */
     function deposit() public payable {
-        require(msg.value > 0, "Deposit must be greater than 0");
+        require(msg.value > ticketPrice, "Deposit must be greater than ticketPrice");
         deposits[msg.sender] += msg.value;
         emit LotteryEscrow__Deposited(msg.sender, msg.value);
     }
