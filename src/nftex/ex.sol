@@ -14,7 +14,8 @@ contract NFTExchange is ReentrancyGuard{
     error NFTExchange__TicketUsed();
     error NFTExchange__NotTicketOwner();
 
-    event NFTExchange__SuccessPriced(address nftAddress, uint256 tokenId, uint256 price);
+    event NFTExchange__SuccessPriced(address indexed nftAddress, uint256 indexed tokenId, uint256 price);
+    event NFTExchange__SuccessExchange(address indexed nftAddress, uint256 indexed tokenId, address seller, address buyer, uint256 price);
     // 票nft的合约地址
     ConcertTicket private i_nft;
     IERC20 private immutable i_erc20;
@@ -31,19 +32,20 @@ contract NFTExchange is ReentrancyGuard{
         Ticket memory ticket = i_nft.getTicket(tokenId);
         uint256 sellPrice = s_tokenPrices[tokenId];
         // 2. 判断票的合法性
-        address owner = i_nft.tokenOwner(tokenId);
-        require(owner == ticket.owner, "The seller is not the owner of the ticket");
+        address seller = i_nft.tokenOwner(tokenId);
+        require(seller == ticket.owner, "The seller is not the owner of the ticket");
         // 3. 检查买家的授权余额
         if (sellPrice > i_erc20.allowance(buyer)) {
             revert NFTExchange__NoEnoughAllowance();
         }
         // 4. 转钱  这一步之前需要让buyer approve erc20
-        bool success = i_erc20.transferFrom(buyer, owner, sellPrice);
+        bool success = i_erc20.transferFrom(buyer, seller, sellPrice);
         if (!success) {
             revert NFTExchange__TransferFailed();
         }
         // 5. 修改票的拥有者
         i_nft.changeOwner(tokenId, buyer);
+        emit NFTExchange__SuccessExchange(address(i_nft), tokenId, seller, buyer, sellPrice);
     }
 
     function orderTicket(uint256 tokenId, uint256 sellPrice) public nonReentrant  {
