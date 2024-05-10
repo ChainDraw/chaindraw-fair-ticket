@@ -10,6 +10,7 @@ contract NFTExchange {
     error NFTExchange__NoEnoughAllowance();
     error NFTExchange__TransferFailed();
     error NFTExchange__TicketUsed();
+    error NFTExchange__NotTicketOwner();
 
     event NFTExchange__SuccessPriced(address nftAddress, uint256 tokenId, uint256 price);
     // 票nft的合约地址
@@ -48,6 +49,9 @@ contract NFTExchange {
         address seller = msg.sender;
         // 1. 获取票的信息
         Ticket memory ticket = i_nft.getTicket(tokenId);
+        if ( ticket.owner != seller) {
+            revert NFTExchange__NotTicketOwner();
+        }
         if (ticket.used) {
             revert NFTExchange__TicketUsed();
         }
