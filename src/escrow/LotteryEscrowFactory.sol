@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {LotteryEscrow} from "./LotteryEscrow.sol";
-import {ConcertTicket} from "../ticket/ConcertTicket.sol";
+import {ConcertTicketNFT} from "../ticket/ConcertTicketNFT.sol";
 
 /**
  * @title 抵押品工厂
@@ -38,13 +38,15 @@ contract LotteryEscrowFactory {
         string memory _name,
         uint256 _price,
         string memory _url,
+          uint256 _ticketCount,
         uint256 _ddl
+      
     ) public returns (address escrowAddress, address ticketAddress) {
         //新建一个门票实例
-        ConcertTicket ticket = new ConcertTicket(_name, _typeName);
+        ConcertTicketNFT ticket = new ConcertTicketNFT(_name, _typeName);
         //新建一个抵押品实例
         LotteryEscrow escrow =
-            new LotteryEscrow(_organizer, _concertId, _ticketType, _typeName, _name, _price, _url, _ddl, ticket);
+            new LotteryEscrow(_organizer, _concertId, _ticketType, _typeName, _name, _price, _url,_ticketCount, _ddl, ticket);
         //记录门票类型唯一键值与抵押品合约地址映射
         escrows[_ticketType] = address(escrow);
         escrowAddress = address(escrow);
