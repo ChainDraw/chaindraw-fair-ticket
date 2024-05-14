@@ -5,8 +5,7 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract ConcertTicket is ERC721, Ownable {
-
-    event ConcertTicket__CreatedTicketNFT(uint256 concertId,uint256 ticketType,address belongs, uint256 timeStamp);
+    event ConcertTicket__CreatedTicketNFT(uint256 concertId, uint256 ticketType, address belongs);
     /**
      * struct  门票{
      * 演唱会唯一标识符
@@ -21,6 +20,7 @@ contract ConcertTicket is ERC721, Ownable {
      * 二手交易历史
      * }
      */
+
     struct TicketInfo {
         uint256 concertId;
         uint256 ticketType;
@@ -31,7 +31,7 @@ contract ConcertTicket is ERC721, Ownable {
         string url;
         address belongs;
         bool used;
-        TransferRecord transferRecord;
+        TransferRecord[] transferRecords;
     }
 
     struct TransferRecord {
@@ -40,41 +40,32 @@ contract ConcertTicket is ERC721, Ownable {
         uint256 timeStamp;
     }
 
-    TicketInfo private ticketInfo;
+/**
+ * @notice 门票信息
+ */
+    mapping(uint256 ticketId => TicketInfo) public ticketInfos;
 
-    constructor(
-        uint256 _concertId,
-        uint256 _ticketType,
-        string memory _typeName,
-        uint256 _ticketId,
-        string memory _name,
-        uint256 _price,
-        string memory _url,
-        address _belongs,
-        bool _used,
-        address _from,
-        address _to,
-        uint256 _timeStamp
-    ) ERC721(_name, _typeName) Ownable(_belongs) {
-        ticketInfo = TicketInfo({
-            concertId: _concertId,
-            ticketType: _ticketType,
-            typeName: _typeName,
-            ticketId: 0,
-            name: _name,
-            price: _price,
-            url: _url,
-            belongs: _belongs,
-            used: false,
-            transferRecord: TransferRecord({from: _from, to: _to, timeStamp: _timeStamp})
-        });
-    }
+    constructor(string memory _name, string memory _typeName) ERC721(_name, _typeName) Ownable(msg.sender) {}
 
-
-        function mintTicketNft() public {
+    function mintTicketNft(TicketInfo memory ticketInfo) public {
         uint256 ticketId = ticketInfo.ticketId;
         _safeMint(msg.sender, ticketId);
-        ticketInfo.ticketId = ticketInfo.ticketId + 1;
-        emit ConcertTicket__CreatedTicketNFT(ticketInfo.concertId,ticketInfo.ticketType,ticketInfo.belongs,ticketInfo.transferRecord.timeStamp);
+        //记录每张门票nft状态
+       // 创建一个新的TicketInfo存储实例
+        TicketInfo storage newTicketInfo = ticketInfos[ticketId];
+        newTicketInfo.concertId = ticketInfo.concertId;
+        newTicketInfo.ticketType = ticketInfo.ticketType;
+        newTicketInfo.typeName = ticketInfo.typeName;
+        newTicketInfo.ticketId = ticketId;
+        newTicketInfo.name = ticketInfo.name;
+        newTicketInfo.price = ticketInfo.price;
+        newTicketInfo.url = ticketInfo.url;
+        newTicketInfo.belongs = ticketInfo.belongs;
+        newTicketInfo.used = ticketInfo.used;
+        // 复制TransferRecord数组
+        for (uint256 i = 0; i < ticketInfo.transferRecords.length; i++) {
+            newTicketInfo.transferRecords.push(ticketInfo.transferRecords[i]);
+        }
+        emit ConcertTicket__CreatedTicketNFT(ticketInfo.concertId, ticketInfo.ticketType, ticketInfo.belongs);
     }
 }
