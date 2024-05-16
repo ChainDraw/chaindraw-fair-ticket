@@ -41,4 +41,4 @@ endif
 
 # Deploy LotteryEscrowFactory contract
 deploy:
-	@forge script script/DeployLotteryEscrowFactory.s.sol:DeployLotteryEscrowFactory $(NETWORK_ARGS)
+	@forge script script/deploy/DeployLotteryEscrowFactory.s.sol:DeployLotteryEscrowFactory $(NETWORK_ARGS)
