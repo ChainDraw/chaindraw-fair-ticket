@@ -28,15 +28,15 @@ test:; forge test
 format:; forge fmt
 
 # Define default network arguments
-NETWORK_ARGS := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY) --broadcast
+NETWORK_ARGS := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY) --broadcast 
 
 # Override network arguments for BSC testnet
 ifeq ($(findstring --network bsc_testnet,$(ARGS)),--network bsc_testnet)
-	NETWORK_ARGS := --rpc-url $(BSC_TESTNET_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast
+	NETWORK_ARGS := --rpc-url $(BSC_TESTNET_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(BSCSCAN_API_KEY)
 endif
 
 ifeq ($(findstring --network sepolia,$(ARGS)),--network sepolia)
-    NETWORK_ARGS := --rpc-url $(SEPOLIA_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast
+    NETWORK_ARGS := --rpc-url $(SEPOLIA_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(ETHERSCAN_API_KEY)
 endif
 
 # Deploy LotteryEscrowFactory contract
