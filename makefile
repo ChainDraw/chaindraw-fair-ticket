@@ -35,6 +35,10 @@ ifeq ($(findstring --network bsc_testnet,$(ARGS)),--network bsc_testnet)
 	NETWORK_ARGS := --rpc-url $(BSC_TESTNET_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast
 endif
 
+ifeq ($(findstring --network sepolia,$(ARGS)),--network sepolia)
+    NETWORK_ARGS := --rpc-url $(SEPOLIA_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast
+endif
+
 # Deploy LotteryEscrowFactory contract
 deploy:
 	@forge script script/DeployLotteryEscrowFactory.s.sol:DeployLotteryEscrowFactory $(NETWORK_ARGS)
