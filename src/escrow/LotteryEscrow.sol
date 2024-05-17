@@ -178,8 +178,12 @@ contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
         emit LotteryEscrow__ClaimedFunds(concertId, ticketType, organizer, amount);
     }
 
-    function getAllBuyer() private view returns (address[] memory) {
+    function getAllBuyer() public view returns (address[] memory) {
         return allBuyer;
+    }
+
+    function getTicketPrice()public view returns(uint256){
+        return price;
     }
 
     function requestRandomWords() external onlyOwner returns (uint256 requestId) {
