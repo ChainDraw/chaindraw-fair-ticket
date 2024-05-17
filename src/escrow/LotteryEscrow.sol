@@ -12,6 +12,12 @@ import {TicketStruct} from "../ticket/TicketStruct.sol";
  */
 
 contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
+
+/**
+ *  错误————订阅抽票超时
+ */
+    error DepositTimeOut();
+
     /**
      * 事件——购票者已缴纳抵押品
      * @param buyer 购票者地址
@@ -87,6 +93,13 @@ contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
     //购票者与缴纳抵押品价值 映射
     mapping(address => uint256) public deposits;
 
+
+ modifier checkTimeOut(uint256 _ddl) {
+        if (block.timestamp > _ddl) {
+            revert DepositTimeOut();
+        }
+        _;
+    }
     ///////////////////
     // chainlink vrf相关
     ///////////////////
@@ -134,7 +147,7 @@ contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
     /**
      * 报名时候缴纳抵押品并加入抽选队列
      */
-    function deposit() public payable {
+    function deposit() public checkTimeOut(ddl) payable {
         require(msg.value > price, "Deposit must be greater than ticketPrice");
         if (deposits[msg.sender] == 0) {
             allBuyer.push(msg.sender); // 如果是新存款者，添加到数组中，相当于enterRaffle了
