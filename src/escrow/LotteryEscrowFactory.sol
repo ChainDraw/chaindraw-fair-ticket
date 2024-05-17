@@ -11,6 +11,11 @@ import {ConcertTicketNFT} from "../ticket/ConcertTicketNFT.sol";
  */
 contract LotteryEscrowFactory {
     /**
+     * 错误——票种类型唯一键已存在
+     */
+    error TicketTypeAlreadyExists();
+
+    /**
      * 事件——抵押品已创建
      * @param concertId 演唱会id
      * @param ticketType 票种类唯一键
@@ -25,10 +30,17 @@ contract LotteryEscrowFactory {
      */
     mapping(uint256 ticketType => address escrow) public escrows;
 
-/**
- * @notice 抵押品合约地址与门票合约地址映射
- */
+    /**
+     * @notice 抵押品合约地址与门票合约地址映射
+     */
     mapping(address escrow => address ticket) public escrowsMapTickets;
+
+    modifier checkTicketType(uint256 _ticketType) {
+        if (escrows[_ticketType] != address(0)) {
+            revert TicketTypeAlreadyExists();
+        }
+        _;
+    }
 
     function createEscrow(
         address _organizer,
@@ -38,15 +50,15 @@ contract LotteryEscrowFactory {
         string memory _name,
         uint256 _price,
         string memory _url,
-          uint256 _ticketCount,
+        uint256 _ticketCount,
         uint256 _ddl
-      
-    ) public returns (address escrowAddress, address ticketAddress) {
+    ) public checkTicketType(_ticketType) returns (address escrowAddress, address ticketAddress) {
         //新建一个门票实例
         ConcertTicketNFT ticket = new ConcertTicketNFT(_name, _typeName);
         //新建一个抵押品实例
-        LotteryEscrow escrow =
-            new LotteryEscrow(_organizer, _concertId, _ticketType, _typeName, _name, _price, _url,_ticketCount, _ddl, ticket);
+        LotteryEscrow escrow = new LotteryEscrow(
+            _organizer, _concertId, _ticketType, _typeName, _name, _price, _url, _ticketCount, _ddl, ticket
+        );
         //记录门票类型唯一键值与抵押品合约地址映射
         escrows[_ticketType] = address(escrow);
         escrowAddress = address(escrow);
