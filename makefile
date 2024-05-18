@@ -45,14 +45,14 @@ deploy:
 
 
 # Verify LotteryEscrowFactory contract
-#example: make verify CONTRACT=LotteryEscrowFactory ADDRESS=0xb63695De4787d338725f0F281380d0dC82768f43 ARGS="--network bsc_testnet"
+#example: make verify CONTRACT=LotteryEscrowFactory ADDRESS=0xb63695De4787d338725f0F281380d0dC82768f43 ARGS="--network bsc_testnet" 
 verify:
 	@echo "Verifying contract $(CONTRACT) at address $(ADDRESS)"
 	@if [ -z "$(CONTRACT)" ] || [ -z "$(ADDRESS)" ]; then \
 		echo "Error: CONTRACT and ADDRESS must be specified"; \
 		exit 1; \
 	fi
-	@forge verify-contract --chain ${CHAIN_ID} --compiler-version v0.8.20+commit.a1b79de6 --etherscan-api-key $(BSCSCAN_API_KEY) $(ADDRESS) $(CONTRACT)
+	@forge verify-contract --watch --chain ${CHAIN_ID} --compiler-version v0.8.20+commit.a1b79de6 --etherscan-api-key $(BSCSCAN_API_KEY) $(ADDRESS) $(CONTRACT)
 
 # Define default verification arguments
 SOLC_VERSION := v0.8.20+commit.a1b79de6

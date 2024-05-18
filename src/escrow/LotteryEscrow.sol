@@ -16,7 +16,7 @@ contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
 /**
  *  错误————订阅抽票超时
  */
-    error DepositTimeOut();
+    error LotteryEscrowError__DepositTimeOut();
 
     /**
      * 事件——购票者已缴纳抵押品
@@ -96,7 +96,7 @@ contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
 
  modifier checkTimeOut(uint256 _ddl) {
         if (block.timestamp > _ddl) {
-            revert DepositTimeOut();
+            revert LotteryEscrowError__DepositTimeOut();
         }
         _;
     }
@@ -148,7 +148,7 @@ contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
      * 报名时候缴纳抵押品并加入抽选队列
      */
     function deposit() public checkTimeOut(ddl) payable {
-        require(msg.value > price, "Deposit must be greater than ticketPrice");
+        require(msg.value == price, "Deposit must be eq ticketPrice");
         if (deposits[msg.sender] == 0) {
             allBuyer.push(msg.sender); // 如果是新存款者，添加到数组中，相当于enterRaffle了
         }
@@ -236,6 +236,9 @@ contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
             
             // 发放门票逻辑
             concertTicketNFT.mintTicketNft(newTicketInfo);
+
+            //门票钱打给项目方
+
         }
     }
 }
