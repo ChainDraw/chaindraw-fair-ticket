@@ -12,10 +12,9 @@ import {TicketStruct} from "../ticket/TicketStruct.sol";
  */
 
 contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
-
-/**
- *  错误————订阅抽票超时
- */
+    /**
+     *  错误————订阅抽票超时
+     */
     error LotteryEscrowError__DepositTimeOut();
 
     /**
@@ -37,8 +36,8 @@ contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
      * @param organizer 组织者钱包地址
      * @param money 金额
      */
-    event LotteryEscrow__ClaimedFunds(
-        uint256 indexed concertId, uint256 indexed ticketType, address organizer, uint256 money
+    event LotteryEscrow__ClaimedFund(
+        uint256 indexed concertId, uint256 indexed ticketType, address organizer, address winner, uint256 money
     );
 
     /**
@@ -93,8 +92,7 @@ contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
     //购票者与缴纳抵押品价值 映射
     mapping(address => uint256) public deposits;
 
-
- modifier checkTimeOut(uint256 _ddl) {
+    modifier checkTimeOut(uint256 _ddl) {
         if (block.timestamp > _ddl) {
             revert LotteryEscrowError__DepositTimeOut();
         }
@@ -103,6 +101,7 @@ contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
     ///////////////////
     // chainlink vrf相关
     ///////////////////
+
     address private linkAddress = 0x779877A7B0D9E8603169DdbD7836e478b4624789;
     address private wrapperAddress = 0xab18414CD93297B0d12ac29E63Ca20f515b3DB46;
 
@@ -147,7 +146,7 @@ contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
     /**
      * 报名时候缴纳抵押品并加入抽选队列
      */
-    function deposit() public checkTimeOut(ddl) payable {
+    function deposit() public payable checkTimeOut(ddl) {
         require(msg.value == price, "Deposit must be eq ticketPrice");
         if (deposits[msg.sender] == 0) {
             allBuyer.push(msg.sender); // 如果是新存款者，添加到数组中，相当于enterRaffle了
@@ -168,21 +167,11 @@ contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
         emit LotteryEscrow__Refunded(concertId, ticketType, participant, amount);
     }
 
-    /**
-     * 当前抵押品合约的钱打给活动组织者
-     */
-    function claimFunds() public onlyOwner {
-        uint256 amount = address(this).balance;
-        // transfer funds to the lottery organizer or for ticket payment
-        payable(organizer).transfer(amount);
-        emit LotteryEscrow__ClaimedFunds(concertId, ticketType, organizer, amount);
-    }
-
     function getAllBuyer() public view returns (address[] memory) {
         return allBuyer;
     }
 
-    function getTicketPrice()public view returns(uint256){
+    function getTicketPrice() public view returns (uint256) {
         return price;
     }
 
@@ -231,14 +220,18 @@ contract LotteryEscrow is Ownable, VRFV2WrapperConsumerBase {
                 url: url,
                 belongs: winner,
                 used: false,
-                transferRecords: new  TicketStruct.TransferRecord[](0)
+                transferRecords: new TicketStruct.TransferRecord[](0)
             });
-            
+
             // 发放门票逻辑
             concertTicketNFT.mintTicketNft(newTicketInfo);
 
             //门票钱打给项目方
-
+            uint256 amount = deposits[winner];
+            if (amount > 0) {
+                payable(organizer).transfer(amount);
+                emit LotteryEscrow__ClaimedFund(concertId, ticketType, organizer, winner, amount);
+            }
         }
     }
 }
