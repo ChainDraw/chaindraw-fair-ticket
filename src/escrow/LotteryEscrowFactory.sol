@@ -2,7 +2,8 @@
 pragma solidity 0.8.20;
 
 import {LotteryEscrow} from "./LotteryEscrow.sol";
-import {ConcertTicketNFT} from "../ticket/ConcertTicketNFT.sol";
+
+error TicketTypeAlreadyExists();
 
 /**
  * @title 抵押品工厂
@@ -11,30 +12,22 @@ import {ConcertTicketNFT} from "../ticket/ConcertTicketNFT.sol";
  */
 contract LotteryEscrowFactory {
     /**
-     * 错误——票种类型唯一键已存在
-     */
-    error TicketTypeAlreadyExists();
-
-    /**
      * 事件——抵押品已创建
      * @param concertId 演唱会id
      * @param ticketType 票种类唯一键
      * @param escrowAddress 抵押品合约地址
      */
     event EscrowCreated(
-        uint256 indexed concertId, uint256 indexed ticketType, address escrowAddress, address ticketAddress
+        uint256 indexed concertId,
+        uint256 indexed ticketType,
+        address escrowAddress
     );
-
     /**
      * @notice key票种类唯一键，value 抵押品合约地址
      */
-    mapping(uint256 ticketType => address escrow) public escrows;
-
-    /**
-     * @notice 抵押品合约地址与门票合约地址映射
-     */
-    mapping(address escrow => address ticket) public escrowsMapTickets;
-
+    address[] public allEscrows;
+    mapping(uint256 => address) public escrows;
+    mapping(address => bool) public isRegistered;
     modifier checkTicketType(uint256 _ticketType) {
         if (escrows[_ticketType] != address(0)) {
             revert TicketTypeAlreadyExists();
@@ -52,23 +45,34 @@ contract LotteryEscrowFactory {
         string memory _url,
         uint256 _ticketCount,
         uint256 _ddl
-    ) public checkTicketType(_ticketType) returns (address escrowAddress, address ticketAddress) {
-        //新建一个门票实例
-        ConcertTicketNFT ticket = new ConcertTicketNFT(_name, _typeName);
+    ) public checkTicketType(_ticketType) returns (address escrowAddress) {
         //新建一个抵押品实例
         LotteryEscrow escrow = new LotteryEscrow(
-            _organizer, _concertId, _ticketType, _typeName, _name, _price, _url, _ticketCount, _ddl, ticket
+            _organizer,
+            _concertId,
+            _ticketType,
+            _typeName,
+            _name,
+            _price,
+            _url,
+            _ticketCount,
+            _ddl
         );
         //记录门票类型唯一键值与抵押品合约地址映射
         escrows[_ticketType] = address(escrow);
         escrowAddress = address(escrow);
-        //记录抵押品合约地址和门票合约地址映射
-        escrowsMapTickets[escrowAddress] = address(ticket);
-        ticketAddress = address(ticket);
-        emit EscrowCreated(_concertId, _ticketType, escrowAddress, ticketAddress);
+        isRegistered[escrowAddress] = true;
+        allEscrows.push(escrowAddress);
+        emit EscrowCreated(_concertId, _ticketType, escrowAddress);
     }
 
-    function getEscrowAddressByTicketType(uint256 ticketType) public view returns (address) {
+    function getEscrowAddressByTicketType(
+        uint256 ticketType
+    ) public view returns (address) {
         return escrows[ticketType];
+    }
+
+    receive() external payable {
+        revert("Direct payments not allowed");
     }
 }
