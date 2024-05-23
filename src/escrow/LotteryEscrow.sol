@@ -151,7 +151,7 @@ function withdrawLink(uint256 _amount) external onlyOwner {
     }
 
     function requestNextRandomWords() private returns (uint256 requestId) {
-        uint32 numWords = (remainingTicketCount > 500) ? 500 : remainingTicketCount;
+        uint32 numWords = (remainingTicketCount > 10) ? 10 : remainingTicketCount;
 
         requestId = requestRandomness(callbackGasLimit, requestConfirmations, numWords);
         s_requests[requestId] = RequestStatus({
