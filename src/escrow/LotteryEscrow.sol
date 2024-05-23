@@ -17,9 +17,7 @@ error LotteryEscrowError__DepositTimeOut();
  * @author Shaw
  * @notice
  */
-
-
-contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VRFV2WrapperConsumerBase{
+contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VRFV2WrapperConsumerBase {
     event LotteryEscrow__Deposited(uint256 indexed concertId, uint256 indexed ticketType, address buyer, uint256 money);
     event LotteryEscrow__Refunded(uint256 indexed concertId, uint256 indexed ticketType, address buyer, uint256 money);
     event LotteryEscrow__ClaimedFund(
@@ -53,8 +51,8 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
     bool private lotteryEnded;
     bool public completeDraw;
     uint32 public remainingTicketCount;
-    mapping  (address => bool) public isWinner;
-    LinkTokenInterface public linkToken; 
+    mapping(address => bool) public isWinner;
+    LinkTokenInterface public linkToken;
 
     struct RequestStatus {
         uint256 paid;
@@ -116,13 +114,12 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
     }
 
     function depositLink(uint256 _amount) external {
-    require(linkToken.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
-}
+        require(linkToken.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
+    }
 
-function withdrawLink(uint256 _amount) external onlyOwner {
-    require(linkToken.transfer(msg.sender, _amount), "Transfer failed");
-}
-
+    function withdrawLink(uint256 _amount) external onlyOwner {
+        require(linkToken.transfer(msg.sender, _amount), "Transfer failed");
+    }
 
     function deposit() public payable checkTimeOut(ddl) {
         require(msg.value == price, "Deposit must be eq ticketPrice");
@@ -147,7 +144,21 @@ function withdrawLink(uint256 _amount) external onlyOwner {
     function startLottery() external nonReentrant {
         require(block.timestamp > ddl, "Lottery not ended");
         require(!lotteryEnded, "Lottery has already ended");
-        requestNextRandomWords();
+        if (allBuyer.length > ticketCount) {
+            requestNextRandomWords();
+        } else {
+            for (uint256 i = 0; i < allBuyer.length; i++) {
+                address winner = allBuyer[i];
+                emit LotteryEscrow__Winner(concertId, ticketType, winner);
+                deposits[winner] = 0;
+                winners.push(winner);
+                isWinner[winner] = true;
+                payable(organizer).transfer(price);
+                mintTicketNft(winner);
+                emit LotteryEscrow__ClaimedFund(concertId, ticketType, organizer, winner, price);
+            }
+            completeDraw = true;
+        }
     }
 
     function requestNextRandomWords() private returns (uint256 requestId) {
