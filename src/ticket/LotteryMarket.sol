@@ -42,8 +42,8 @@ contract LotteryMarket is ReentrancyGuard, Ownable {
         uint256 indexed tokenId
     );
 
-    constructor(address _factoryAddress) Ownable(msg.sender) {
-        factoryAddress = _factoryAddress;
+    constructor()  Ownable(msg.sender){
+        
     }
 
     modifier onlyRegistered(address lotteryAddress) {
@@ -52,6 +52,10 @@ contract LotteryMarket is ReentrancyGuard, Ownable {
             "Lottery contract not registered"
         );
         _;
+    }
+
+    function setFactoryAddress(address _factoryAddress) public {
+        factoryAddress = _factoryAddress;
     }
 
     // 上架

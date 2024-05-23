@@ -157,6 +157,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
                 mintTicketNft(winner);
                 emit LotteryEscrow__ClaimedFund(concertId, ticketType, organizer, winner, price);
             }
+            lotteryEnded = true;
             completeDraw = true;
         }
     }
