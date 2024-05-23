@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -15,9 +16,7 @@ error LotteryEscrowError__DepositTimeOut();
  * @author Shaw
  * @notice
  */
-interface LinkTokenInterface {
-    function transfer(address to, uint256 value) external returns (bool success);
-}
+
 
 contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VRFV2WrapperConsumerBase {
     event LotteryEscrow__Deposited(uint256 indexed concertId, uint256 indexed ticketType, address buyer, uint256 money);
@@ -54,6 +53,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
     bool public completeDraw;
     uint32 public remainingTicketCount;
     mapping (address => bool) isWinner;
+    LinkTokenInterface public linkToken; 
 
     struct RequestStatus {
         uint256 paid;
@@ -104,6 +104,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
         ticketCount = _ticketCount;
         ddl = _ddl;
         remainingTicketCount = uint32(_ticketCount);
+        linkToken = LinkTokenInterface(linkAddress);
     }
 
     modifier checkTimeOut(uint256 _ddl) {
@@ -112,6 +113,15 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
         }
         _;
     }
+
+    function depositLink(uint256 _amount) external {
+    require(linkToken.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
+}
+
+function withdrawLink(uint256 _amount) external onlyOwner {
+    require(linkToken.transfer(msg.sender, _amount), "Transfer failed");
+}
+
 
     function deposit() public payable checkTimeOut(ddl) {
         require(msg.value == price, "Deposit must be eq ticketPrice");
