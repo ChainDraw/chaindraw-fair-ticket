@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import {VRFV2WrapperConsumerBase} from "@chainlink/contracts/src/v0.8/VRFV2WrapperConsumerBase.sol";
+import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
 
 error LotteryEscrowError__alreadyJoin();
 error LotteryEscrowError__DepositTimeOut();
@@ -18,7 +19,7 @@ error LotteryEscrowError__DepositTimeOut();
  */
 
 
-contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VRFV2WrapperConsumerBase {
+contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VRFV2WrapperConsumerBase{
     event LotteryEscrow__Deposited(uint256 indexed concertId, uint256 indexed ticketType, address buyer, uint256 money);
     event LotteryEscrow__Refunded(uint256 indexed concertId, uint256 indexed ticketType, address buyer, uint256 money);
     event LotteryEscrow__ClaimedFund(
@@ -47,7 +48,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
     address private wrapperAddress = 0x699d428ee890d55D56d5FC6e26290f3247A762bd;
     uint256[] public requestIds;
     uint256 public lastRequestId;
-    uint32 callbackGasLimit = 100000;
+    uint32 callbackGasLimit = 4294967295;
     uint16 requestConfirmations = 3;
     bool private lotteryEnded;
     bool public completeDraw;
