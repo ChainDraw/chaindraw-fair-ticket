@@ -52,7 +52,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
     bool private lotteryEnded;
     bool public completeDraw;
     uint32 public remainingTicketCount;
-    mapping (address => bool) isWinner;
+    mapping  (address => bool) public isWinner;
     LinkTokenInterface public linkToken; 
 
     struct RequestStatus {
