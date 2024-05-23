@@ -40,14 +40,21 @@ ifeq ($(findstring --network sepolia,$(ARGS)),--network sepolia)
 endif
 
 # Deploy LotteryEscrowFactory contract
-deploy:
+deployFactory:
 	@forge script script/deploy/DeployLotteryEscrowFactory.s.sol:DeployLotteryEscrowFactory $(NETWORK_ARGS)
+
+# Deploy LotteryMarket contract
+deployMarket:
+	@forge script script/deploy/DeployLotteryMarket.s.sol:DeployLotteryMarket $(NETWORK_ARGS)
+
 
 
 # Verify LotteryEscrowFactory contract
 # 验证构造函数形参 实参 
 # 参考foundry文档 forge verify-contract 第3 第4个例子
-# example:forge verify-contract  --chain-id ${CHAIN_ID}  --watch --constructor-args $(cast abi-encode "constructor(address,uint256,uint256,string,string,uint256,string,uint256,uint256,address)" 0x36FE82fB67DFEA5a469f1502f88044b78C3e97C2 110 110 "测试开源代码" "测试开源代码" 100 www.test.com 100 11123 0x525E6196F20A9dD70829bb9f8E0d7E5CCb031826)   --etherscan-api-key $(BSCSCAN_API_KEY) $(ADDRESS) $(CONTRACT)
+
+# example:forge verify-contract  --chain-id ${CHAIN_ID}  --watch --constructor-args $(cast abi-encode "createEscrow(address,uint256,uint256,string,string,uint256,string,uint256,uint256)" 0x36FE82fB67DFEA5a469f1502f88044b78C3e97C2 10010 2 "NORMAL" "宇多田光2024演唱会普通票" 100 www.test.com 300 1716456660000)   --etherscan-api-key $(BSCSCAN_API_KEY) $(ADDRESS) $(CONTRACT)
+
 
 
 # verify:
