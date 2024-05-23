@@ -43,9 +43,9 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
     uint256 public ddl;
     uint256 public ticketCount;
     address[] public allBuyer;
-    address[] public winners;
-    address private linkAddress = 0x779877A7B0D9E8603169DdbD7836e478b4624789;
-    address private wrapperAddress = 0xab18414CD93297B0d12ac29E63Ca20f515b3DB46;
+    address[] private winners;
+    address private linkAddress = 0x84b9B910527Ad5C03A9Ca831909E21e236EA7b06;
+    address private wrapperAddress = 0x699d428ee890d55D56d5FC6e26290f3247A762bd;
     uint256[] public requestIds;
     uint256 public lastRequestId;
     uint32 callbackGasLimit = 100000;
@@ -53,6 +53,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
     bool private lotteryEnded;
     bool public completeDraw;
     uint32 public remainingTicketCount;
+    mapping (address => bool) isWinner;
 
     struct RequestStatus {
         uint256 paid;
@@ -183,6 +184,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
             emit LotteryEscrow__Winner(concertId, ticketType, winner);
             deposits[winner] = 0;
             winners.push(winner);
+            isWinner[winner] = true;
             payable(organizer).transfer(price);
             mintTicketNft(winner);
             emit LotteryEscrow__ClaimedFund(concertId, ticketType, organizer, winner, price);
