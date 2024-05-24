@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -17,7 +18,7 @@ error LotteryEscrowError__DepositTimeOut();
  * @author Shaw
  * @notice
  */
-contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VRFV2WrapperConsumerBase {
+contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGuard, VRFV2WrapperConsumerBase {
     event LotteryEscrow__Deposited(uint256 indexed concertId, uint256 indexed ticketType, address buyer, uint256 money);
     event LotteryEscrow__Refunded(uint256 indexed concertId, uint256 indexed ticketType, address buyer, uint256 money);
     event LotteryEscrow__ClaimedFund(
@@ -41,17 +42,16 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
     uint256 public ddl;
     uint256 public ticketCount;
     address[] public allBuyer;
-    address[] private winners;
     address private linkAddress = 0x84b9B910527Ad5C03A9Ca831909E21e236EA7b06;
     address private wrapperAddress = 0x699d428ee890d55D56d5FC6e26290f3247A762bd;
     uint256[] public requestIds;
     uint256 public lastRequestId;
-    uint32 callbackGasLimit = 4294967295;
+    uint32 callbackGasLimit = 2000000;
     uint16 requestConfirmations = 3;
     bool private lotteryEnded;
     bool public completeDraw;
     uint32 public remainingTicketCount;
-    mapping(address => bool) public isWinner;
+    uint256 private constant LINK_FEE = 1e18; // 1 LINK
     LinkTokenInterface public linkToken;
 
     struct RequestStatus {
@@ -60,28 +60,10 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
         uint256[] randomWords;
     }
 
-    struct TicketInfo {
-        uint256 concertId;
-        uint256 ticketType;
-        string typeName;
-        uint256 ticketId;
-        string name;
-        uint256 price;
-        string url;
-        address belongs;
-        bool used;
-        TransferRecord[] transferRecords;
-    }
-
     mapping(address => uint256) public deposits;
     mapping(uint256 => RequestStatus) public s_requests;
-
+    mapping(address => bool) public isWinner;
     //交易记录数据结构
-    struct TransferRecord {
-        address from;
-        address to;
-        uint256 timeStamp;
-    }
 
     constructor(
         address _organizer,
@@ -93,7 +75,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
         string memory _url,
         uint256 _ticketCount,
         uint256 _ddl
-    ) ERC721(_name, _typeName) VRFV2WrapperConsumerBase(linkAddress, wrapperAddress) Ownable(_organizer) {
+    ) ERC721(_name, _typeName) VRFV2WrapperConsumerBase(linkAddress, wrapperAddress)  ConfirmedOwner(msg.sender){
         Factory = msg.sender;
         organizer = _organizer;
         concertId = _concertId;
@@ -111,10 +93,6 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
             revert LotteryEscrowError__DepositTimeOut();
         }
         _;
-    }
-
-    function depositLink(uint256 _amount) external {
-        require(linkToken.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
     }
 
     function withdrawLink(uint256 _amount) external onlyOwner {
@@ -142,24 +120,31 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
     }
 
     function startLottery() external nonReentrant {
-        require(block.timestamp > ddl, "Lottery not ended");
+        require(block.timestamp > ddl, "Lottery not started yet");
         require(!lotteryEnded, "Lottery has already ended");
+        require(allBuyer.length > 0, "No participants in the lottery");
+        uint256 linkBalance = linkToken.balanceOf(address(this));
+        require(linkBalance >= LINK_FEE, "Not enough LINK");
         if (allBuyer.length > ticketCount) {
             requestNextRandomWords();
         } else {
-            for (uint256 i = 0; i < allBuyer.length; i++) {
-                address winner = allBuyer[i];
-                emit LotteryEscrow__Winner(concertId, ticketType, winner);
-                deposits[winner] = 0;
-                winners.push(winner);
-                isWinner[winner] = true;
-                payable(organizer).transfer(price);
-                mintTicketNft(winner);
-                emit LotteryEscrow__ClaimedFund(concertId, ticketType, organizer, winner, price);
-            }
-            lotteryEnded = true;
-            completeDraw = true;
+            allBuyerShorterThanTicketCount();
         }
+    }
+
+    function allBuyerShorterThanTicketCount() private {
+        for (uint256 i = 0; i < allBuyer.length; i++) {
+            address winner = allBuyer[i];
+            emit LotteryEscrow__Winner(concertId, ticketType, winner);
+            deposits[winner] = 0;
+            isWinner[winner] = true;
+            payable(organizer).transfer(price);
+            mintTicketNft(winner);
+            emit LotteryEscrow__ClaimedFund(concertId, ticketType, organizer, winner, price);
+        }
+        remainingTicketCount == 0;
+        lotteryEnded = true;
+        completeDraw = true;
     }
 
     function requestNextRandomWords() private returns (uint256 requestId) {
@@ -168,7 +153,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
         requestId = requestRandomness(callbackGasLimit, requestConfirmations, numWords);
         s_requests[requestId] = RequestStatus({
             paid: VRF_V2_WRAPPER.calculateRequestPrice(callbackGasLimit),
-            randomWords: new uint256[](0),
+            randomWords: new uint256[](10),
             fulfilled: false
         });
 
@@ -206,7 +191,6 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
             address winner = allBuyer[winnerIndex];
             emit LotteryEscrow__Winner(concertId, ticketType, winner);
             deposits[winner] = 0;
-            winners.push(winner);
             isWinner[winner] = true;
             payable(organizer).transfer(price);
             mintTicketNft(winner);
@@ -217,7 +201,11 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, VR
         }
         emit ChainlinkVrf__RequestFulfilled(_requestId, _randomWords, s_requests[_requestId].paid);
 
-        // Refund non-winners
+        // 简化非赢家退款逻辑
+       // refundNonWinners();
+    }
+
+    function refundNonWinners() internal {
         for (uint256 i = 0; i < allBuyer.length; i++) {
             if (deposits[allBuyer[i]] > 0) {
                 uint256 depositAmount = deposits[allBuyer[i]];
