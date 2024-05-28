@@ -75,7 +75,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGu
         string memory _url,
         uint256 _ticketCount,
         uint256 _ddl
-    ) ERC721(_name, _typeName) VRFV2WrapperConsumerBase(linkAddress, wrapperAddress)  ConfirmedOwner(msg.sender){
+    ) ERC721(_name, _typeName) VRFV2WrapperConsumerBase(linkAddress, wrapperAddress)  ConfirmedOwner(_organizer){
         Factory = msg.sender;
         organizer = _organizer;
         concertId = _concertId;
