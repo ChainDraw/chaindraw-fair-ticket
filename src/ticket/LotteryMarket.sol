@@ -43,7 +43,7 @@ contract LotteryMarket is ReentrancyGuard,IERC721Receiver, Ownable {
         address indexed lotteryAddress,
         uint256 indexed tokenId
     );
-
+    uint8 public fee = 0;  
     constructor()  Ownable(msg.sender){
         
     }
@@ -55,8 +55,10 @@ contract LotteryMarket is ReentrancyGuard,IERC721Receiver, Ownable {
         );
         _;
     }
-
-    function setFactoryAddress(address _factoryAddress) onlyOwner public {
+     function setFactoryAddress(uint8 _fee) onlyOwner external{
+        fee = _fee;
+    }
+    function setFactoryAddress(address _factoryAddress) onlyOwner external {
         factoryAddress = _factoryAddress;
     }
 
@@ -90,7 +92,8 @@ contract LotteryMarket is ReentrancyGuard,IERC721Receiver, Ownable {
     ) external payable nonReentrant {
         Listing memory listing = listings[lotteryAddress][tokenId];
         require(listing.price > 0, "NFT not listed for sale");
-        require(msg.value == listing.price, "Incorrect value sent");
+        require(msg.value == listing.price + fee, "Incorrect value sent");
+        payable(owner()).transfer(fee);
         payable(listing.seller).transfer(listing.price);
         IERC721(lotteryAddress).safeTransferFrom(
             address(this),
@@ -98,7 +101,7 @@ contract LotteryMarket is ReentrancyGuard,IERC721Receiver, Ownable {
             tokenId
         );
         delete listings[lotteryAddress][tokenId];
-
+        
         emit NFTSold(msg.sender, lotteryAddress, tokenId, listing.price);
     }
 
