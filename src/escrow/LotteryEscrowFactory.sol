@@ -18,7 +18,7 @@ contract LotteryEscrowFactory {
      * @param escrowAddress 抵押品合约地址
      */
     event EscrowCreated(
-        uint256 indexed concertId,
+        string indexed concertId,
         uint256 indexed ticketType,
         address escrowAddress
     );
@@ -37,7 +37,7 @@ contract LotteryEscrowFactory {
 
     function createEscrow(
         address _organizer,
-        uint256 _concertId,
+        string memory _concertId,
         uint256 _ticketType,
         string memory _typeName,
         string memory _name,
