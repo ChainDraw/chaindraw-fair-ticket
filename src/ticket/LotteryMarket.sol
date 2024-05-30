@@ -14,6 +14,7 @@ interface IFactory {
 
 interface ILottery {
     function price() external view returns (uint256);
+    function concertEndDate() external view retruns(uint256);
 }
 
 contract LotteryMarket is ReentrancyGuard,IERC721Receiver, Ownable {
@@ -68,7 +69,10 @@ contract LotteryMarket is ReentrancyGuard,IERC721Receiver, Ownable {
         IERC721 token = IERC721(lotteryAddress);
         require(token.ownerOf(tokenId) == msg.sender, "Not the owner");
         ILottery lottery = ILottery(lotteryAddress);
-        require(price <= lottery.price(), "Price exceeds lottery price");
+        
+        if(block.timestamp < lottery.concertEndDate() ){
+          require(price <= lottery.price(), "Price exceeds lottery price");
+        }
         token.safeTransferFrom(msg.sender, address(this), tokenId);
         listings[lotteryAddress][tokenId] = Listing({
             seller: msg.sender,
