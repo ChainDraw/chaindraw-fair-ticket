@@ -47,7 +47,8 @@ contract LotteryEscrowFactory {
         uint256 _ddl,
         uint256 concertEndDate
     ) public checkTicketType(_ticketType) returns (address escrowAddress) {
-        //新建一个抵押品实例
+    require (concertEndDate > _ddl,"concertEndDate < _ddl");
+//新建一个抵押品实例
         LotteryEscrow escrow = new LotteryEscrow(
             _organizer,
             _concertId,
