@@ -26,6 +26,7 @@ contract LotteryEscrowFactory {
      * @notice key票种类唯一键，value 抵押品合约地址
      */
     address[] public allEscrows;
+    address public MarketAddress;
     mapping(uint256 => address) public escrows;
     mapping(address => bool) public isRegistered;
     modifier checkTicketType(uint256 _ticketType) {
@@ -59,7 +60,8 @@ contract LotteryEscrowFactory {
             _url,
             _ticketCount,
             _ddl,
-            concertEndDate
+            concertEndDate,
+            MarketAddress
         );
         //记录门票类型唯一键值与抵押品合约地址映射
         escrows[_ticketType] = address(escrow);
@@ -68,7 +70,9 @@ contract LotteryEscrowFactory {
         allEscrows.push(escrowAddress);
         emit EscrowCreated(_concertId, _ticketType, escrowAddress);
     }
-
+    function setMarketAddress (address _marketAddress) external onlyOwner{
+        MarketAddress = _marketAddress;
+    }
     function getEscrowAddressByTicketType(
         uint256 ticketType
     ) public view returns (address) {
