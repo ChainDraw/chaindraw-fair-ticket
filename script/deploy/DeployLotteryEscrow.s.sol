@@ -12,7 +12,7 @@ contract DeployLotteryEscrow is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // 部署 LotteryEscrow 合约
-        LotteryEscrow esceow = new LotteryEscrow(0x36FE82fB67DFEA5a469f1502f88044b78C3e97C2,10010, 2 ,"NORMAL" ,"yuduotiangaung" ,1 ,"www.test.com" ,1 ,1716523897);
+        LotteryEscrow esceow = new LotteryEscrow(0x36FE82fB67DFEA5a469f1502f88044b78C3e97C2,10010, 2 ,"NORMAL" ,"yuduotiangaung" ,1 ,"www.test.com" ,1 ,1716529495,1716529495);
         console.log("LotteryEscrow deployed to:", address(esceow));
         vm.stopBroadcast();
     }

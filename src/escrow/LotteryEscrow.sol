@@ -53,6 +53,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGu
     uint32 public remainingTicketCount;
     uint256 private constant LINK_FEE = 1e18; // 1 LINK
     LinkTokenInterface public linkToken;
+    uint256 public concertEndDate;
 
     struct RequestStatus {
         uint256 paid;
@@ -74,8 +75,9 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGu
         uint256 _price,
         string memory _url,
         uint256 _ticketCount,
-        uint256 _ddl
-    ) ERC721(_name, _typeName) VRFV2WrapperConsumerBase(linkAddress, wrapperAddress)  ConfirmedOwner(_organizer){
+        uint256 _ddl,
+        uint256 _concertEndDate
+    ) ERC721(_name, _typeName) VRFV2WrapperConsumerBase(linkAddress, wrapperAddress) ConfirmedOwner(_organizer) {
         Factory = msg.sender;
         organizer = _organizer;
         concertId = _concertId;
@@ -84,6 +86,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGu
         url = _url;
         ticketCount = _ticketCount;
         ddl = _ddl;
+        concertEndDate = _concertEndDate;
         remainingTicketCount = uint32(_ticketCount);
         linkToken = LinkTokenInterface(linkAddress);
     }
@@ -202,7 +205,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGu
         emit ChainlinkVrf__RequestFulfilled(_requestId, _randomWords, s_requests[_requestId].paid);
 
         // 简化非赢家退款逻辑
-       // refundNonWinners();
+        // refundNonWinners();
     }
 
     function refundNonWinners() internal {
@@ -218,5 +221,14 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGu
 
     receive() external payable {
         revert("Direct payments not allowed");
+    }
+
+    function _transfer(address from, address to, uint256 tokenId) internal  override {
+        //演唱会结束前交易nft限价，演唱会结束后交易nft不限制价格
+        if (block.timestamp < concertEndDate) {
+             require(msg.value == price, "Transaction value must be equal to the ticket price");
+        }
+        // 调用父合约的 _transfer 函数
+        super._transfer(from, to, tokenId);
     }
 }

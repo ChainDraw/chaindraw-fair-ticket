@@ -44,7 +44,8 @@ contract LotteryEscrowFactory {
         uint256 _price,
         string memory _url,
         uint256 _ticketCount,
-        uint256 _ddl
+        uint256 _ddl,
+        uint256 concertEndDate
     ) public checkTicketType(_ticketType) returns (address escrowAddress) {
         //新建一个抵押品实例
         LotteryEscrow escrow = new LotteryEscrow(
@@ -56,7 +57,8 @@ contract LotteryEscrowFactory {
             _price,
             _url,
             _ticketCount,
-            _ddl
+            _ddl,
+            concertEndDate
         );
         //记录门票类型唯一键值与抵押品合约地址映射
         escrows[_ticketType] = address(escrow);
