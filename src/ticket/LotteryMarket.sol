@@ -55,7 +55,7 @@ contract LotteryMarket is ReentrancyGuard,IERC721Receiver, Ownable {
         _;
     }
 
-    function setFactoryAddress(address _factoryAddress) public {
+    function setFactoryAddress(address _factoryAddress) onlyOwner public {
         factoryAddress = _factoryAddress;
     }
 
