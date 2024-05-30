@@ -38,6 +38,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGu
     uint256 public immutable concertId;
     uint256 public immutable ticketType;
     uint256 public immutable price;
+    address public immutable MarketAddress;
     string public url;
     uint256 public ddl;
     uint256 public ticketCount;
@@ -54,7 +55,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGu
     uint256 private constant LINK_FEE = 1e18; // 1 LINK
     LinkTokenInterface public linkToken;
     uint256 public concertEndDate;
-
+  
     struct RequestStatus {
         uint256 paid;
         bool fulfilled;
@@ -76,7 +77,8 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGu
         string memory _url,
         uint256 _ticketCount,
         uint256 _ddl,
-        uint256 _concertEndDate
+        uint256 _concertEndDate,
+        address _market
     ) ERC721(_name, _typeName) VRFV2WrapperConsumerBase(linkAddress, wrapperAddress) ConfirmedOwner(_organizer) {
         Factory = msg.sender;
         organizer = _organizer;
@@ -89,6 +91,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGu
         concertEndDate = _concertEndDate;
         remainingTicketCount = uint32(_ticketCount);
         linkToken = LinkTokenInterface(linkAddress);
+        MarketAddress = _market;
     }
 
     modifier checkTimeOut(uint256 _ddl) {
@@ -224,10 +227,12 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGu
     }
 
     function _transfer(address from, address to, uint256 tokenId) internal  override {
-        //演唱会结束前交易nft限价，演唱会结束后交易nft不限制价格
-        if (block.timestamp < concertEndDate) {
-             require(msg.value == price, "Transaction value must be equal to the ticket price");
-        }
+      if(block.timestamp < concertEndDate ){
+       require(
+            from == MarketAddress || to == MarketAddress || from == address(0),
+            "only market contract"
+        );
+      }
         // 调用父合约的 _transfer 函数
         super._transfer(from, to, tokenId);
     }
