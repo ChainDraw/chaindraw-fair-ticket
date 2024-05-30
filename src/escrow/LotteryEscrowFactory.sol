@@ -18,7 +18,7 @@ contract LotteryEscrowFactory {
      * @param escrowAddress 抵押品合约地址
      */
     event EscrowCreated(
-        string indexed concertId,
+        string  concertId,
         uint256 indexed ticketType,
         address escrowAddress
     );
