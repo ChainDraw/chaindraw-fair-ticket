@@ -14,7 +14,7 @@ interface IFactory {
 
 interface ILottery {
     function price() external view returns (uint256);
-    function concertEndDate() external view retruns(uint256);
+    function concertEndDate() external view returns(uint256);
 }
 
 contract LotteryMarket is ReentrancyGuard,IERC721Receiver, Ownable {

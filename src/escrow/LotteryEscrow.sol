@@ -19,15 +19,15 @@ error LotteryEscrowError__DepositTimeOut();
  * @notice
  */
 contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGuard, VRFV2WrapperConsumerBase {
-    event LotteryEscrow__Deposited(uint256 indexed concertId, uint256 indexed ticketType, address buyer, uint256 money);
-    event LotteryEscrow__Refunded(uint256 indexed concertId, uint256 indexed ticketType, address buyer, uint256 money);
+    event LotteryEscrow__Deposited(string  concertId, uint256 indexed ticketType, address buyer, uint256 money);
+    event LotteryEscrow__Refunded(string  concertId, uint256 indexed ticketType, address buyer, uint256 money);
     event LotteryEscrow__ClaimedFund(
-        uint256 indexed concertId, uint256 indexed ticketType, address organizer, address winner, uint256 money
+        string  concertId, uint256 indexed ticketType, address organizer, address winner, uint256 money
     );
     event LotteryEscrow__NonWinner(
-        uint256 indexed concertId, uint256 indexed ticketType, address nonWinner, uint256 money
+        string  concertId, uint256 indexed ticketType, address nonWinner, uint256 money
     );
-    event LotteryEscrow__Winner(uint256 indexed concertId, uint256 indexed ticketType, address winner);
+    event LotteryEscrow__Winner(string  concertId, uint256 indexed ticketType, address winner);
     event LotteryEscrow__CompleteDraw(address lotteryAddress);
     event ChainlinkVrf__RequestSent(uint256 requestId, uint32 numWords);
     event ChainlinkVrf__RequestFulfilled(uint256 requestId, uint256[] randomWords, uint256 payment);
@@ -35,7 +35,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGu
     uint256 private _nextTokenId;
     address public immutable Factory;
     address public immutable organizer;
-    uint256 public immutable concertId;
+    string public  concertId;
     uint256 public immutable ticketType;
     uint256 public immutable price;
     address public immutable MarketAddress;
@@ -69,7 +69,7 @@ contract LotteryEscrow is ERC721, ERC721URIStorage, ConfirmedOwner, ReentrancyGu
 
     constructor(
         address _organizer,
-        uint256 _concertId,
+        string memory _concertId,
         uint256 _ticketType,
         string memory _typeName,
         string memory _name,

@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {LotteryEscrow} from "./LotteryEscrow.sol";
-
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 error TicketTypeAlreadyExists();
 
 /**
@@ -10,7 +10,7 @@ error TicketTypeAlreadyExists();
  * @author Shaw
  * @notice
  */
-contract LotteryEscrowFactory {
+contract LotteryEscrowFactory is Ownable{
     /**
      * 事件——抵押品已创建
      * @param concertId 演唱会id
@@ -18,7 +18,7 @@ contract LotteryEscrowFactory {
      * @param escrowAddress 抵押品合约地址
      */
     event EscrowCreated(
-        uint256 indexed concertId,
+        string  concertId,
         uint256 indexed ticketType,
         address escrowAddress
     );
@@ -36,9 +36,13 @@ contract LotteryEscrowFactory {
         _;
     }
 
+    constructor() Ownable(msg.sender) {
+
+    }
+
     function createEscrow(
         address _organizer,
-        uint256 _concertId,
+        string memory _concertId,
         uint256 _ticketType,
         string memory _typeName,
         string memory _name,
