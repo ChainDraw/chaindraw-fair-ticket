@@ -55,7 +55,7 @@ contract LotteryMarket is ReentrancyGuard,IERC721Receiver, Ownable {
         );
         _;
     }
-     function setFactoryAddress(uint8 _fee) onlyOwner external{
+     function setFee(uint8 _fee) onlyOwner external{
         fee = _fee;
     }
     function setFactoryAddress(address _factoryAddress) onlyOwner external {
